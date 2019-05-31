@@ -1,3 +1,5 @@
+// Original Author: Eduard Lopez
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
