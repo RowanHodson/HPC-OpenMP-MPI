@@ -18,10 +18,10 @@ int cmp(const void * a, const void * b) {
 }
 
 void phase1(int *array, int N, int startIndex, int subArraySize, int *pivots, int p) {
-  // 对子数组进行局部排序
+  // local sorting of subarrays
   qsort(array + startIndex, subArraySize, sizeof(array[0]), cmp);
 
-  // 正则采样
+  // regular sampling
   for (i = 0; i < p; i++) {
     pivots[i] = array[startIndex + (i * (N / (p * p)))];    
   }
@@ -33,31 +33,31 @@ void phase2(int *array, int startIndex, int subArraySize, int *pivots, int *part
   int *phase2Pivots = (int *) malloc((p - 1) * sizeof(pivots[0]));          //主元
   int index = 0;
 
-  //收集消息，根进程在它的接受缓冲区中包含所有进程的发送缓冲区的连接。
+   // Collecting messages, the root process contains connections to the send buffers of all processes in its accept buffer.
   MPI_Gather(pivots, p, MPI_INT, collectedPivots, p, MPI_INT, 0, MPI_COMM_WORLD);       
   if (myId == 0) {
 
-    qsort(collectedPivots, p * p, sizeof(pivots[0]), cmp);          //对正则采样的样本进行排序
+    qsort(collectedPivots, p * p, sizeof(pivots[0]), cmp);          //Sorting regular sampled samples
 
-    // 采样排序后进行主元的选择
+    // Principal selection after sampling and sorting
     for (i = 0; i < (p -1); i++) {
       phase2Pivots[i] = collectedPivots[(((i+1) * p) + (p / 2)) - 1];
     }
   }
-  //发送广播
+  //Send broadcast
   MPI_Bcast(phase2Pivots, p - 1, MPI_INT, 0, MPI_COMM_WORLD);
-  // 进行主元划分，并计算划分部分的大小
+  // Perform the principal division and calculate the size of the division
   for ( i = 0; i < subArraySize; i++) {
     if (array[startIndex + i] > phase2Pivots[index]) {
-      //如果当前位置的数字大小超过主元位置，则进行下一个划分
+      //If the size of the current position exceeds the pivot position, proceed to the next division
       index += 1;
     }
     if (index == p) {
-      //最后一次划分，子数组总长减掉当前位置即可得到最后一个子数组划分的大小
+      //The last division, the total length of the sub-array minus the current position can get the size of the last sub-array division
       partitionSizes[p - 1] = subArraySize - i + 1;
       break;
     }
-    partitionSizes[index]++ ;   //划分大小自增
+    partitionSizes[index]++ ;   // Divided size increase
   }
   free(collectedPivots);
   free(phase2Pivots);
@@ -69,16 +69,16 @@ void phase3(int *array, int startIndex, int *partitionSizes, int **newPartitions
   int *sendDisp = (int *) malloc(p * sizeof(int));
   int *recvDisp = (int *) malloc(p * sizeof(int));
     
-  // 全局到全局的发送，每个进程可以向每个接收者发送数目不同的数据.
+  //Global to global delivery, each process can send a different amount of data to each recipient.
   MPI_Alltoall(partitionSizes, 1, MPI_INT, newPartitionSizes, 1, MPI_INT, MPI_COMM_WORLD);
 
-  // 计算划分的总大小，并给新划分分配空间
+  // Calculate the total size of the partition and allocate space for the new partition
   for ( i = 0; i < p; i++) {
     totalSize += newPartitionSizes[i];
   }
   *newPartitions = (int *) malloc(totalSize * sizeof(int));
 
-  // 在发送划分之前计算相对于sendbuf的位移，此位移处存放着输出到进程的数据
+  // Calculate the displacement relative to sendbuf before sending the partition, this shift stores the data output to the process
   sendDisp[0] = 0;
   recvDisp[0] = 0;      //计算相对于recvbuf的位移，此位移处存放着从进程接受到的数据
   for ( i = 1; i < p; i++) {
