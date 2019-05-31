@@ -1,3 +1,5 @@
+// Original Author Eduard Lopez
+
 #include "omp.h"
 
 
