@@ -38,11 +38,6 @@ debug_tables(mdata *md) {
     int p;
 
     printf("%d:\t\t\tdebug_tables()\n", md->rank);
-
-    //  printf("%d:\t\t\t\tset: ", md->rank);
-    //  for ( p = 0; p < md->size; p++)
-    //      printf("%d ", md->set[p]);
-    //  printf("\n");
     fflush(stdout);
 
     printf("%d:\t\t\t\tpivot: %d: , size: %d, lim: %d, gl: %d, gh: %d\n", md->rank, md->pivot, md->size, md->lim, md->gl, md->gh);
@@ -128,10 +123,8 @@ load_values(mdata *md) {
     return 0;
 }
 
-/////////////////////////////////
 /*
- * funkcja moze byc wywolywana przez wszystkie procesy
- * tylko odpowiednie ranki ja wywolaja
+ * This function can be called by all processes
  */
 static int
 send_buf(mdata *md, int *buf, int size, int dest, int source) {
@@ -164,7 +157,6 @@ send_buf(mdata *md, int *buf, int size, int dest, int source) {
     return 0;
 }
 
-/////////////////////////////////
 static int
 distribute_values(mdata *md) {
     int i;
@@ -191,7 +183,6 @@ distribute_values(mdata *md) {
     return 0;
 }
 
-/////////////////////////////////
 static int
 set_pivot(mdata *md) {
     int i;
