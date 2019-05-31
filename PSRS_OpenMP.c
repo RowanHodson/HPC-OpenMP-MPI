@@ -1,3 +1,4 @@
+// Original Author: Shane Fitzpatrick
 #include "omp.h"
 #include "stdio.h"
 #include "string.h"
